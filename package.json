@@ -1,7 +1,7 @@
 {
-  "name": "attack-surface-intel-rakfort",
+  "name": "attack-surface-intel-platform",
   "version": "1.0.0",
-  "description": "Local-first Attack Surface Intelligence platform with RakFort AI Security (GuardFort + ScanFort) demo capabilities",
+  "description": "Local-first Attack Surface Intelligence platform with GuardFort (PII/prompt firewall) and ScanFort (LLM red-teaming) AI security capabilities",
   "type": "module",
   "main": "server/index.js",
   "scripts": {

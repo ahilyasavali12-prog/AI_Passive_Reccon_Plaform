@@ -1,6 +1,6 @@
-# Attack Surface Intelligence + RakFort AI Security (local demo)
+# Attack Surface Intelligence + AI Security (local demo)
 
-A fully local Attack Surface Intelligence dashboard upgraded with RakFort AI Security
+A fully local Attack Surface Intelligence dashboard upgraded with AI security
 capabilities:
 
 - **GuardFort** — real-time PII redaction (emails, SSNs, card numbers, API keys, IPs,

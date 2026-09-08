@@ -22,5 +22,5 @@ app.get(/.*/, (_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Attack Surface Intelligence + RakFort AI Security demo running at http://localhost:${PORT}`);
+  console.log(`Attack Surface Intelligence + GuardFort/ScanFort AI Security demo running at http://localhost:${PORT}`);
 });
