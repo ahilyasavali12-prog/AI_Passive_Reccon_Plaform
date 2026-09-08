@@ -33,6 +33,17 @@
   <main>
     <!-- OVERVIEW -->
     <section class="view active" id="view-overview">
+      <div class="card" style="margin-bottom: 20px;">
+        <h3 style="margin-bottom: 10px;">Run passive recon on a real target</h3>
+        <p class="panel-desc" style="margin-bottom: 14px;">DNS lookups + certificate-transparency subdomain enumeration + lightweight HTTP fingerprinting. Purely passive — no exploitation, no auth attempts. Takes 5-20 seconds depending on how many subdomains are discovered.</p>
+        <div class="toolbar" style="margin-bottom: 0;">
+          <input type="text" id="scan-target" placeholder="e.g. example.com" />
+          <input type="text" id="scan-org" placeholder="Organization label (e.g. acme-corp)" style="max-width: 220px;" />
+          <button class="btn" id="scan-run">Run Passive Recon</button>
+        </div>
+        <div class="progress-line" id="scan-progress"></div>
+      </div>
+
       <div class="grid cols-4" id="summary-cards"></div>
 
       <div class="grid cols-2" style="margin-top: 24px;">

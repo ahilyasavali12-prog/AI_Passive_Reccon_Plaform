@@ -1,7 +1,18 @@
 import { Router } from "express";
 import * as store from "../data/store.js";
+import { runPassiveRecon } from "../recon/pipeline.js";
 
 const router = Router();
+
+function normalizeTarget(input) {
+  let t = String(input).trim().toLowerCase();
+  t = t.replace(/^[a-z]+:\/\//, "");
+  t = t.split("/")[0].split("?")[0].split("#")[0];
+  t = t.split(":")[0];
+  return t;
+}
+
+const HOSTNAME_RE = /^(?=.{1,253}$)[a-z0-9](-*[a-z0-9])*(\.[a-z0-9](-*[a-z0-9])*)+$/;
 
 router.get("/dashboard/summary", (_req, res) => {
   res.json(store.dashboardSummary());
@@ -51,13 +62,62 @@ router.get("/runs", (_req, res) => {
   res.json(store.listRuns());
 });
 
-router.post("/runs", (req, res) => {
-  const { organization, target } = req.body ?? {};
-  if (!organization || !target) {
+router.post("/runs", async (req, res) => {
+  const { organization, target: rawTarget } = req.body ?? {};
+  if (!organization || !rawTarget) {
     return res.status(400).json({ error: "organization and target are required" });
   }
-  const run = store.createRun({ organization, target });
-  res.status(202).json(run);
+  const target = normalizeTarget(rawTarget);
+  if (!HOSTNAME_RE.test(target)) {
+    return res.status(400).json({ error: `"${rawTarget}" doesn't look like a valid domain (e.g. example.com)` });
+  }
+
+  const startedAt = new Date();
+  try {
+    const recon = await runPassiveRecon(target, organization);
+
+    let assetCount = 0;
+    let findingCount = 0;
+    for (const entry of recon.entries) {
+      const asset = store.addAsset(entry.asset);
+      assetCount++;
+      for (const finding of entry.findings) {
+        store.addFinding({ ...finding, assetId: asset.id });
+        findingCount++;
+      }
+    }
+
+    const completedAt = new Date();
+    const run = store.recordRun({
+      organization,
+      target,
+      status: "completed",
+      startedAt: startedAt.toISOString(),
+      completedAt: completedAt.toISOString(),
+      assetCount,
+      findingCount,
+      durationSeconds: Math.round((completedAt - startedAt) / 1000),
+    });
+
+    res.status(202).json({
+      ...run,
+      notes: recon.notes,
+      subdomainsFound: recon.subdomainSource.subdomains.length,
+    });
+  } catch (err) {
+    const completedAt = new Date();
+    const run = store.recordRun({
+      organization,
+      target,
+      status: "failed",
+      startedAt: startedAt.toISOString(),
+      completedAt: completedAt.toISOString(),
+      assetCount: 0,
+      findingCount: 0,
+      durationSeconds: Math.round((completedAt - startedAt) / 1000),
+    });
+    res.status(502).json({ error: err.message, run });
+  }
 });
 
 export default router;

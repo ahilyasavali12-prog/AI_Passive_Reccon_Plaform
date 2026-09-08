@@ -6,7 +6,21 @@ const state = {
   findings: seedFindings.map((f) => ({ ...f })),
   runs: seedRuns.map((r) => ({ ...r })),
   nextRunId: seedRuns.length + 1,
+  nextAssetId: seedAssets.length + 1,
+  nextFindingId: seedFindings.length + 1,
 };
+
+export function addAsset(data) {
+  const asset = { id: state.nextAssetId++, ...data };
+  state.assets.push(asset);
+  return asset;
+}
+
+export function addFinding(data) {
+  const finding = { id: state.nextFindingId++, status: "open", detectedAt: new Date().toISOString(), ...data };
+  state.findings.push(finding);
+  return finding;
+}
 
 export function listAssets({ search, type, status } = {}) {
   return state.assets.filter((asset) => {
@@ -60,19 +74,17 @@ export function listRuns() {
   return [...state.runs].sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
 }
 
-export function createRun({ organization, target }) {
-  const startedAt = new Date();
-  const completedAt = new Date(startedAt.getTime() + 1200);
+export function recordRun({ organization, target, status, startedAt, completedAt, assetCount, findingCount, durationSeconds }) {
   const run = {
     id: state.nextRunId++,
     organization,
     target,
-    status: "completed",
-    startedAt: startedAt.toISOString(),
-    completedAt: completedAt.toISOString(),
-    assetCount: state.assets.length,
-    findingCount: state.findings.length,
-    durationSeconds: 2,
+    status,
+    startedAt,
+    completedAt,
+    assetCount,
+    findingCount,
+    durationSeconds,
   };
   state.runs.push(run);
   return run;

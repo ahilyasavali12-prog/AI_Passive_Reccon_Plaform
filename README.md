@@ -4,6 +4,13 @@ A fully local platform where custom LLM/AI workflows automate the analyst's job 
 end: **passive recon → asset triage → VAPT reporting** — wrapped in AI-security guardrails
 so the automation itself can't be used against you.
 
+- **Live passive recon** — type a real domain into the Overview tab and it runs actual
+  DNS resolution, certificate-transparency subdomain enumeration (via crt.sh — public CT
+  logs, no API key), and a single lightweight HTTP(S) fingerprint request per discovered
+  host. Purely passive: only public-data lookups and one unauthenticated request per
+  host, nothing that touches the target beyond that. Results are scored heuristically and
+  turned into real findings (missing HTTPS, disclosed server banners, missing security
+  headers, sensitive-looking subdomain names) that flow straight into Assets/Findings.
 - **AI asset triage** — the local LLM reads each discovered asset and its findings and
   returns a priority (P1–P4), a plain-language business impact statement, and a specific
   recommended action. Turns a raw asset list into a worked triage queue.
@@ -38,7 +45,11 @@ build step. No cloud services, no API keys, no AWS.
 ```
 
 - `server/data/` — seeded in-memory attack surface data (assets, findings, pipeline runs)
-- `server/routes/intelligence.js` — dashboard/assets/findings/runs REST API
+- `server/recon/` — the live passive recon pipeline: `dns.js` (DNS lookups), `subdomains.js`
+  (crt.sh certificate-transparency enumeration), `fingerprint.js` (HTTP(S) header fetch),
+  `scoring.js` (heuristic risk scoring + finding generation), `pipeline.js` (orchestration)
+- `server/routes/intelligence.js` — dashboard/assets/findings/runs REST API (runs a real
+  scan via `server/recon/` on `POST /api/runs`)
 - `server/ai/triage.js` — LLM asset triage (priority, business impact, recommended action)
 - `server/ai/report.js` — LLM-drafted VAPT report (narrative sections + deterministic tables)
 - `server/routes/ai.js` — triage + report HTTP endpoints
@@ -108,8 +119,14 @@ own screen, skip this step entirely and stay on `http://localhost:5000`.
 
 ## Demo script
 
+0. **Overview tab → "Run passive recon on a real target"** — type a real domain (e.g. a
+   domain you control, or any public one) and an organization label, click "Run Passive
+   Recon". In ~5-20 seconds it adds real assets/findings from actual DNS + certificate
+   transparency + HTTP fingerprinting on top of the seeded demo data. Do this first so the
+   rest of the demo can reference a target you just scanned live, not just canned data.
 1. **Overview / Assets / Findings** — the passive recon output: seeded with ~20 assets and
-   15 findings across all severities so the dashboard is never empty.
+   15 findings across all severities so the dashboard is never empty, plus whatever your
+   live scan just added.
 2. **Assets tab → "Triage" button** — click it on a high-risk asset (e.g. the exposed
    PostgreSQL service). The LLM reads the asset + its findings and returns a priority
    (P1–P4), business impact, and recommended action in a few seconds. This is the "asset
@@ -136,3 +153,10 @@ own screen, skip this step entirely and stay on `http://localhost:5000`.
   and whether the configured model is pulled.
 - If a triage or report call errors out, it's almost always Ollama not running or the
   model not pulled yet — check the status pill first.
+- The passive recon scan needs normal internet access (DNS + HTTPS to crt.sh and to the
+  target itself) — it does not need Ollama. If crt.sh is slow/unreachable it degrades
+  gracefully: you still get the domain + resolved IP assets, with a note that subdomain
+  enumeration was skipped, instead of the whole scan failing.
+- Only scan domains you're authorized to test, or your own — this is passive-only
+  (public DNS/CT-log lookups plus one unauthenticated request per host, no exploitation),
+  but stick to targets you control or a demo domain for the pitch.

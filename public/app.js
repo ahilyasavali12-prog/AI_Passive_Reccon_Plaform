@@ -103,6 +103,31 @@ function barRow(label, count, total) {
   </div>`;
 }
 
+// ---------- Passive Recon Scan ----------
+$("#scan-run").addEventListener("click", async () => {
+  const target = $("#scan-target").value.trim();
+  const organization = $("#scan-org").value.trim() || target;
+  const progress = $("#scan-progress");
+  if (!target) {
+    progress.innerHTML = `<span style="color: var(--critical)">Enter a target domain first.</span>`;
+    return;
+  }
+  const btn = $("#scan-run");
+  btn.disabled = true;
+  btn.textContent = "Scanning…";
+  progress.textContent = `Resolving DNS, enumerating subdomains, and fingerprinting live hosts for ${target}… this can take up to 20 seconds.`;
+  try {
+    const run = await api("/runs", { method: "POST", body: JSON.stringify({ organization, target }) });
+    progress.innerHTML = `Done — found <strong>${run.assetCount}</strong> asset(s) and <strong>${run.findingCount}</strong> finding(s) for <strong>${escapeHtml(run.target)}</strong> (${run.subdomainsFound} subdomain(s) via certificate transparency). ${run.notes?.length ? `<br><span style="color: var(--medium)">${run.notes.map(escapeHtml).join("<br>")}</span>` : ""}`;
+    await Promise.all([loadOverview(), loadAssets(), loadFindings()]);
+  } catch (err) {
+    progress.innerHTML = `<span style="color: var(--critical)">⚠️ ${escapeHtml(err.message)}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Run Passive Recon";
+  }
+});
+
 // ---------- Assets ----------
 async function loadAssets() {
   const search = $("#asset-search").value.trim();
