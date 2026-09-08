@@ -1,0 +1,18 @@
+{
+  "name": "attack-surface-intel-rakfort",
+  "version": "1.0.0",
+  "description": "Local-first Attack Surface Intelligence platform with RakFort AI Security (GuardFort + ScanFort) demo capabilities",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
