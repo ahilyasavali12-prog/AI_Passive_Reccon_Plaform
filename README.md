@@ -69,9 +69,11 @@ npm install
 npm start
 ```
 
-Open **http://localhost:5000** — the Overview, Assets and Findings tabs work
-immediately (seeded demo data, no LLM required). The GuardFort and ScanFort tabs call
-into Ollama, so make sure `ollama serve` is running and the model from step 1 is pulled.
+Open **http://localhost:5000** — the Overview, Assets and Findings tables populate
+immediately from seeded demo data, no LLM required. Everything that calls the LLM —
+the Assets tab's "Triage" button, the VAPT Report tab, and the GuardFort/ScanFort tabs —
+needs `ollama serve` running with the model from step 1 pulled; the status pill top-right
+shows live reachability.
 
 Set a different model or Ollama host by copying `.env.example` to `.env`:
 
@@ -129,5 +131,8 @@ own screen, skip this step entirely and stay on `http://localhost:5000`.
   reset by hand.
 - GuardFort's PII/injection detection is pure regex/heuristics and works even if Ollama
   isn't running (use "Analyze only" in the GuardFort tab).
-- ScanFort and the GuardFort chat flow need Ollama reachable at `OLLAMA_HOST`; the status
-  pill in the header shows live reachability and whether the configured model is pulled.
+- Asset triage, VAPT report generation, ScanFort, and the GuardFort chat flow all need
+  Ollama reachable at `OLLAMA_HOST`; the status pill in the header shows live reachability
+  and whether the configured model is pulled.
+- If a triage or report call errors out, it's almost always Ollama not running or the
+  model not pulled yet — check the status pill first.
