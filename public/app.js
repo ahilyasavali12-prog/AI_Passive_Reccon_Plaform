@@ -115,7 +115,7 @@ $("#scan-run").addEventListener("click", async () => {
   const btn = $("#scan-run");
   btn.disabled = true;
   btn.textContent = "Scanning…";
-  progress.textContent = `Resolving DNS, enumerating subdomains, and fingerprinting live hosts for ${target}… this can take up to 20 seconds.`;
+  progress.textContent = `Resolving DNS, enumerating subdomains, and fingerprinting live hosts for ${target}… usually 5-15 seconds, can take up to ~1 minute.`;
   try {
     const run = await api("/runs", { method: "POST", body: JSON.stringify({ organization, target }) });
     progress.innerHTML = `Done — found <strong>${run.assetCount}</strong> asset(s) and <strong>${run.findingCount}</strong> finding(s) for <strong>${escapeHtml(run.target)}</strong> (${run.subdomainsFound} subdomain(s) via certificate transparency). ${run.notes?.length ? `<br><span style="color: var(--medium)">${run.notes.map(escapeHtml).join("<br>")}</span>` : ""}`;

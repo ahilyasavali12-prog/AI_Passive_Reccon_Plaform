@@ -121,9 +121,11 @@ own screen, skip this step entirely and stay on `http://localhost:5000`.
 
 0. **Overview tab → "Run passive recon on a real target"** — type a real domain (e.g. a
    domain you control, or any public one) and an organization label, click "Run Passive
-   Recon". In ~5-20 seconds it adds real assets/findings from actual DNS + certificate
-   transparency + HTTP fingerprinting on top of the seeded demo data. Do this first so the
-   rest of the demo can reference a target you just scanned live, not just canned data.
+   Recon". Usually takes 5-15 seconds (up to ~1 minute if the certificate-transparency
+   lookup is slow — it retries once automatically) and adds real assets/findings from
+   actual DNS + certificate transparency + HTTP fingerprinting on top of the seeded demo
+   data. Do this first so the rest of the demo can reference a target you just scanned
+   live, not just canned data.
 1. **Overview / Assets / Findings** — the passive recon output: seeded with ~20 assets and
    15 findings across all severities so the dashboard is never empty, plus whatever your
    live scan just added.

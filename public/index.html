@@ -35,7 +35,7 @@
     <section class="view active" id="view-overview">
       <div class="card" style="margin-bottom: 20px;">
         <h3 style="margin-bottom: 10px;">Run passive recon on a real target</h3>
-        <p class="panel-desc" style="margin-bottom: 14px;">DNS lookups + certificate-transparency subdomain enumeration + lightweight HTTP fingerprinting. Purely passive — no exploitation, no auth attempts. Takes 5-20 seconds depending on how many subdomains are discovered.</p>
+        <p class="panel-desc" style="margin-bottom: 14px;">DNS lookups + certificate-transparency subdomain enumeration + lightweight HTTP fingerprinting. Purely passive — no exploitation, no auth attempts. Usually takes 5-15 seconds; can take up to ~1 minute if the certificate-transparency lookup is slow (it retries once automatically).</p>
         <div class="toolbar" style="margin-bottom: 0;">
           <input type="text" id="scan-target" placeholder="e.g. example.com" />
           <input type="text" id="scan-org" placeholder="Organization label (e.g. acme-corp)" style="max-width: 220px;" />
