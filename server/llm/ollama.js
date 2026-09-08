@@ -28,7 +28,7 @@ export async function status() {
   }
 }
 
-export async function generate(prompt, { temperature = 0.4, numPredict = 200, timeoutMs = 60000 } = {}) {
+export async function generate(prompt, { temperature = 0.4, numPredict = 200, timeoutMs = 120000 } = {}) {
   const { signal, cancel } = withTimeout(timeoutMs);
   try {
     const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
@@ -52,9 +52,23 @@ export async function generate(prompt, { temperature = 0.4, numPredict = 200, ti
   } catch (err) {
     cancel();
     if (err.name === "AbortError") {
-      throw new Error("Timed out waiting for the local LLM (Ollama). Is `ollama serve` running and is the model pulled?");
+      throw new Error(
+        `Timed out waiting for ${OLLAMA_MODEL}. If this is the first request since \`ollama serve\` started, the model is likely still loading into memory — try again in a moment, or warm it up first with: ollama run ${OLLAMA_MODEL} "hi"`,
+      );
     }
     throw new Error(`Could not reach Ollama at ${OLLAMA_HOST}: ${err.message}`);
+  }
+}
+
+// Fire a tiny generation request in the background so the model is already
+// loaded into memory by the time a real request comes in — avoids the
+// "first request times out while the model loads" cold-start problem.
+export async function warmup() {
+  try {
+    await generate("hi", { numPredict: 1, timeoutMs: 120000 });
+    return true;
+  } catch {
+    return false;
   }
 }
 

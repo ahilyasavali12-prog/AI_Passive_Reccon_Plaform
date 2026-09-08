@@ -155,6 +155,13 @@ own screen, skip this step entirely and stay on `http://localhost:5000`.
   and whether the configured model is pulled.
 - If a triage or report call errors out, it's almost always Ollama not running or the
   model not pulled yet — check the status pill first.
+- **"Timed out waiting for Ollama"**: this almost always means Ollama is running but the
+  model hasn't finished loading into memory yet (the first request after `ollama serve`
+  starts can take well over a minute on a laptop CPU). The server automatically fires a
+  background warmup request on startup (watch its terminal for "is warm and ready"), but
+  if you start `npm start` before `ollama serve` has fully started, or switch models, warm
+  it up manually before you need it: `ollama run llama3 "hi"`. Once warm, later requests
+  are fast — only the first one after a fresh model load is slow.
 - The passive recon scan needs normal internet access (DNS + HTTPS to crt.sh and to the
   target itself) — it does not need Ollama. If crt.sh is slow/unreachable it degrades
   gracefully: you still get the domain + resolved IP assets, with a note that subdomain
