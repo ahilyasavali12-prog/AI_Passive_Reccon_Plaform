@@ -119,14 +119,48 @@ async function loadAssets() {
             <td><span class="badge ${a.status}">${a.status}</span></td>
             <td>${a.riskScore}</td>
             <td>${fmtTime(a.lastSeen)}</td>
+            <td><button class="btn ghost triage-btn" data-asset-id="${a.id}">Triage</button></td>
           </tr>`,
         )
         .join("")
-    : `<tr><td colspan="5" class="empty">No matching assets</td></tr>`;
+    : `<tr><td colspan="6" class="empty">No matching assets</td></tr>`;
+
+  $$(".triage-btn").forEach((btn) =>
+    btn.addEventListener("click", () => runTriage(Number(btn.dataset.assetId), btn)),
+  );
 }
 ["asset-search", "asset-type-filter", "asset-status-filter"].forEach((id) =>
   $(`#${id}`).addEventListener("input", loadAssets),
 );
+
+async function runTriage(assetId, btn) {
+  const panel = $("#triage-result");
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Triaging…";
+  panel.innerHTML = `<div class="empty">Asking the local LLM to triage this asset…</div>`;
+  try {
+    const result = await api(`/ai/triage/asset/${assetId}`, { method: "POST" });
+    panel.innerHTML = `
+      <div class="row">
+        <h4>AI triage — ${escapeHtml(result.assetName)}</h4>
+        <div class="content"><span class="badge ${result.priority.startsWith("P1") ? "critical" : result.priority.startsWith("P2") ? "high" : result.priority.startsWith("P3") ? "medium" : "low"}">${escapeHtml(result.priority)}</span></div>
+      </div>
+      <div class="row">
+        <h4>Business impact</h4>
+        <div class="content">${escapeHtml(result.businessImpact)}</div>
+      </div>
+      <div class="row">
+        <h4>Recommended action</h4>
+        <div class="content">${escapeHtml(result.recommendedAction)}</div>
+      </div>`;
+  } catch (err) {
+    panel.innerHTML = `<div class="blocked-banner">⚠️ ${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
 
 // ---------- Findings ----------
 async function loadFindings() {
@@ -165,6 +199,41 @@ async function loadFindings() {
 ["finding-search", "finding-severity-filter", "finding-status-filter"].forEach((id) =>
   $(`#${id}`).addEventListener("input", loadFindings),
 );
+
+// ---------- VAPT Report ----------
+$("#report-generate").addEventListener("click", async () => {
+  const btn = $("#report-generate");
+  btn.disabled = true;
+  btn.textContent = "Generating… (drafting summary + remediation plan)";
+  $("#report-progress").textContent = "Asking the local LLM for the executive summary and remediation plan…";
+  $("#report-download").style.display = "none";
+  $("#report-output-wrap").style.display = "none";
+  try {
+    const result = await api("/ai/report", { method: "POST" });
+    $("#report-output").textContent = result.markdown;
+    $("#report-output-wrap").style.display = "";
+    $("#report-progress").textContent = `Generated ${fmtTime(result.generatedAt)}`;
+    $("#report-download").style.display = "";
+    $("#report-download").onclick = () => downloadText("vapt-report.md", result.markdown);
+  } catch (err) {
+    $("#report-progress").innerHTML = `<span style="color: var(--critical)">⚠️ ${escapeHtml(err.message)}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Generate VAPT Report (AI)";
+  }
+});
+
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: "text/markdown" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 // ---------- GuardFort ----------
 function redactionChips(redactions) {

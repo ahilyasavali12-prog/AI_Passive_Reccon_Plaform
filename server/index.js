@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import intelligenceRoutes from "./routes/intelligence.js";
 import securityRoutes from "./routes/security.js";
+import aiRoutes from "./routes/ai.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 5000;
@@ -15,6 +16,7 @@ app.use(express.json({ limit: "1mb" }));
 app.get("/api/healthz", (_req, res) => res.json({ status: "ok" }));
 app.use("/api", intelligenceRoutes);
 app.use("/api", securityRoutes);
+app.use("/api", aiRoutes);
 
 app.use(express.static(path.join(__dirname, "..", "public")));
 app.get(/.*/, (_req, res) => {
@@ -22,5 +24,5 @@ app.get(/.*/, (_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Attack Surface Intelligence + GuardFort/ScanFort AI Security demo running at http://localhost:${PORT}`);
+  console.log(`Attack Surface Intelligence platform (AI triage, VAPT reporting, GuardFort/ScanFort) running at http://localhost:${PORT}`);
 });

@@ -12,7 +12,7 @@
       <div class="brand-mark">AS</div>
       <div>
         <h1>Attack Surface Intelligence</h1>
-        <p>GuardFort + ScanFort AI Security · runs 100% locally</p>
+        <p>AI-automated recon triage & VAPT reporting · GuardFort + ScanFort security · 100% local</p>
       </div>
     </div>
     <div class="status-pill" id="llm-status">
@@ -25,6 +25,7 @@
     <button class="tab-btn active" data-view="overview">Overview</button>
     <button class="tab-btn" data-view="assets">Assets</button>
     <button class="tab-btn" data-view="findings">Findings</button>
+    <button class="tab-btn" data-view="reports">VAPT Report</button>
     <button class="tab-btn" data-view="guardfort">GuardFort Firewall</button>
     <button class="tab-btn" data-view="scanfort">ScanFort Red-Team</button>
   </nav>
@@ -71,10 +72,11 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Asset</th><th>Type</th><th>Status</th><th>Risk</th><th>Last seen</th></tr></thead>
+          <thead><tr><th>Asset</th><th>Type</th><th>Status</th><th>Risk</th><th>Last seen</th><th>AI Triage</th></tr></thead>
           <tbody id="assets-table-body"></tbody>
         </table>
       </div>
+      <div class="result-block" id="triage-result"></div>
     </section>
 
     <!-- FINDINGS -->
@@ -103,6 +105,19 @@
           <thead><tr><th>Finding</th><th>Asset</th><th>Severity</th><th>Status</th><th>Detected</th></tr></thead>
           <tbody id="findings-table-body"></tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- VAPT REPORT -->
+    <section class="view" id="view-reports">
+      <p class="panel-desc">Generates a VAPT (Vulnerability Assessment & Penetration Testing) report from the current assets and findings. The local LLM drafts the executive summary and remediation plan; the findings/asset tables and evidence appendix are rendered directly from the recorded data, not the model — so nothing in the tables can be hallucinated. Every AI-written section passes through GuardFort's outbound PII filter before it's shown.</p>
+      <div class="chat-actions">
+        <button class="btn" id="report-generate">Generate VAPT Report (AI)</button>
+        <button class="btn ghost" id="report-download" style="display:none;">Download report.md</button>
+      </div>
+      <div class="progress-line" id="report-progress"></div>
+      <div class="table-wrap" id="report-output-wrap" style="display:none; margin-top:16px; padding: 22px;">
+        <pre id="report-output" style="white-space: pre-wrap; word-break: break-word; font-size:13px; line-height:1.65; font-family: var(--font); margin: 0;"></pre>
       </div>
     </section>
 

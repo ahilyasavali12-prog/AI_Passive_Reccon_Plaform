@@ -1,11 +1,21 @@
-# Attack Surface Intelligence + AI Security (local demo)
+# Attack Surface Intelligence Platform (local demo)
 
-A fully local Attack Surface Intelligence dashboard upgraded with AI security
-capabilities:
+A fully local platform where custom LLM/AI workflows automate the analyst's job end to
+end: **passive recon → asset triage → VAPT reporting** — wrapped in AI-security guardrails
+so the automation itself can't be used against you.
 
+- **AI asset triage** — the local LLM reads each discovered asset and its findings and
+  returns a priority (P1–P4), a plain-language business impact statement, and a specific
+  recommended action. Turns a raw asset list into a worked triage queue.
+- **AI-drafted VAPT reporting** — one click drafts a full Vulnerability Assessment &
+  Penetration Testing report: the LLM writes the executive summary and remediation plan,
+  while the findings table, asset inventory, and evidence appendix are rendered directly
+  from the recorded data (not the model), so the numbers can't be hallucinated — only the
+  prose is AI-written, and it's clearly labeled as such.
 - **GuardFort** — real-time PII redaction (emails, SSNs, card numbers, API keys, IPs,
   phone numbers) and prompt-injection risk scoring, applied to every message before it
-  reaches the model and to every model response before it reaches the user.
+  reaches the model and to every model response — including the triage and report output
+  above — before it reaches the user.
 - **ScanFort** — an automated red-teaming suite that fires 12 prompt-injection payloads
   (instruction override, jailbreak personas, encoding smuggling, PII exfiltration probes)
   at the local LLM once unprotected ("baseline") and once behind GuardFort ("protected"),
@@ -21,13 +31,17 @@ build step. No cloud services, no API keys, no AWS.
 ┌─────────────────────┐      ┌──────────────────────────┐      ┌────────────────┐
 │  public/index.html   │◄────►│  Node/Express backend      │◄────►│  Ollama (local) │
 │  (dashboard UI)       │ HTTP │  - attack surface API      │ HTTP │  llama3/mistral │
-│                       │      │  - GuardFort firewall       │      │                 │
-│                       │      │  - ScanFort red-team runner │      └────────────────┘
+│                       │      │  - AI triage + VAPT report  │      │                 │
+│                       │      │  - GuardFort firewall       │      └────────────────┘
+│                       │      │  - ScanFort red-team runner │
 └─────────────────────┘      └──────────────────────────┘
 ```
 
 - `server/data/` — seeded in-memory attack surface data (assets, findings, pipeline runs)
 - `server/routes/intelligence.js` — dashboard/assets/findings/runs REST API
+- `server/ai/triage.js` — LLM asset triage (priority, business impact, recommended action)
+- `server/ai/report.js` — LLM-drafted VAPT report (narrative sections + deterministic tables)
+- `server/routes/ai.js` — triage + report HTTP endpoints
 - `server/security/guardfort.js` — PII regex firewall + prompt-injection heuristics
 - `server/security/scanfort.js` — the red-team payload suite and scan runner
 - `server/routes/security.js` — GuardFort + ScanFort HTTP endpoints
@@ -80,13 +94,20 @@ then stop the tunnel (Ctrl+C) when you're done — nothing stays deployed anywhe
 
 ## Demo script
 
-1. **Overview / Assets / Findings** — the "regular" attack surface intelligence product:
-   seeded with ~20 assets and 15 findings across all severities so the dashboard is never
-   empty.
-2. **GuardFort tab** — paste a message containing PII and an injection attempt (a sample
+1. **Overview / Assets / Findings** — the passive recon output: seeded with ~20 assets and
+   15 findings across all severities so the dashboard is never empty.
+2. **Assets tab → "Triage" button** — click it on a high-risk asset (e.g. the exposed
+   PostgreSQL service). The LLM reads the asset + its findings and returns a priority
+   (P1–P4), business impact, and recommended action in a few seconds. This is the "asset
+   triage" automation — a raw asset list becomes a worked queue.
+3. **VAPT Report tab** — click "Generate VAPT Report (AI)". The LLM drafts the executive
+   summary and remediation plan; the findings table, asset inventory, and evidence
+   appendix come straight from the data. Download the `.md` file live as the report
+   deliverable — this is the "VAPT reporting" automation.
+4. **GuardFort tab** — paste a message containing PII and an injection attempt (a sample
    prompt is pre-filled as a placeholder). Show the redaction chips, the injection risk
    score, and that the sanitized text — not the raw text — is what goes to the LLM.
-3. **ScanFort tab** — click "Run Red-Team Scan". It sends all 12 payloads twice (baseline
+5. **ScanFort tab** — click "Run Red-Team Scan". It sends all 12 payloads twice (baseline
    vs. protected) and renders a side-by-side pass/fail table plus a "risk reduction %"
    headline number — the single strongest slide for the pitch.
 
