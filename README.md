@@ -82,15 +82,27 @@ cp .env.example .env
 
 ### 3. (Optional) Hand off a live link with Cloudflare Tunnel
 
-No AWS, no deploy pipeline — just tunnel your local port:
+> **No built-in auth.** Every endpoint here — including the LLM-calling ones
+> (`/api/ai/*`, `/api/scanfort/run`, `/api/guardfort/chat`) and the state-changing ones
+> (`PATCH /api/findings/:id`) — is open to anyone who has the URL, with no rate limiting.
+> That's fine for a link you open right before presenting and close (Ctrl+C) right after.
+> It is **not** fine as something left running as a persistent public webserver — do not
+> deploy this as-is behind a stable domain or leave a tunnel open unattended. If you ever
+> need it reachable long-term, add an API-key check + rate limiting in front of `/api/ai`,
+> `/api/scanfort`, and `/api/guardfort` first.
+
+No AWS, no deploy pipeline — just tunnel your local port, only while you're actively
+presenting:
 
 ```bash
 brew install cloudflared          # or see https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
 cloudflared tunnel --url http://localhost:5000
 ```
 
-Cloudflare prints a public HTTPS URL that proxies straight to your laptop. Share it,
-then stop the tunnel (Ctrl+C) when you're done — nothing stays deployed anywhere.
+Cloudflare prints a public HTTPS URL that proxies straight to your laptop. Share it only
+with the person you're presenting to, then stop the tunnel (Ctrl+C) the moment you're
+done — nothing stays deployed anywhere. If you're just walking someone through it on your
+own screen, skip this step entirely and stay on `http://localhost:5000`.
 
 ## Demo script
 
