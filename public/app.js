@@ -232,6 +232,7 @@ $("#report-generate").addEventListener("click", async () => {
   btn.textContent = "Generating… (drafting summary + remediation plan)";
   $("#report-progress").textContent = "Asking the local LLM for the executive summary and remediation plan…";
   $("#report-download").style.display = "none";
+  $("#report-download-docx").style.display = "none";
   $("#report-output-wrap").style.display = "none";
   try {
     const result = await api("/ai/report", { method: "POST" });
@@ -239,7 +240,9 @@ $("#report-generate").addEventListener("click", async () => {
     $("#report-output-wrap").style.display = "";
     $("#report-progress").textContent = `Generated ${fmtTime(result.generatedAt)}`;
     $("#report-download").style.display = "";
-    $("#report-download").onclick = () => downloadText("vapt-report.md", result.markdown);
+    $("#report-download").onclick = () => downloadBlob("vapt-report.md", new Blob([result.markdown], { type: "text/markdown" }));
+    $("#report-download-docx").style.display = "";
+    $("#report-download-docx").onclick = () => downloadDocxReport(result);
   } catch (err) {
     $("#report-progress").innerHTML = `<span style="color: var(--critical)">⚠️ ${escapeHtml(err.message)}</span>`;
   } finally {
@@ -248,8 +251,36 @@ $("#report-generate").addEventListener("click", async () => {
   }
 });
 
-function downloadText(filename, text) {
-  const blob = new Blob([text], { type: "text/markdown" });
+async function downloadDocxReport(result) {
+  const docxBtn = $("#report-download-docx");
+  const original = docxBtn.textContent;
+  docxBtn.disabled = true;
+  docxBtn.textContent = "Building .docx…";
+  try {
+    const res = await fetch("/api/ai/report/docx", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        execSummary: result.execSummary,
+        recommendations: result.recommendations,
+        generatedAt: result.generatedAt,
+      }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Request failed (${res.status})`);
+    }
+    const blob = await res.blob();
+    downloadBlob("vapt-report.docx", blob);
+  } catch (err) {
+    $("#report-progress").innerHTML = `<span style="color: var(--critical)">⚠️ ${escapeHtml(err.message)}</span>`;
+  } finally {
+    docxBtn.disabled = false;
+    docxBtn.textContent = original;
+  }
+}
+
+function downloadBlob(filename, blob) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

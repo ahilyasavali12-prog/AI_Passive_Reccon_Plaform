@@ -18,7 +18,9 @@ so the automation itself can't be used against you.
   Penetration Testing report: the LLM writes the executive summary and remediation plan,
   while the findings table, asset inventory, and evidence appendix are rendered directly
   from the recorded data (not the model), so the numbers can't be hallucinated — only the
-  prose is AI-written, and it's clearly labeled as such.
+  prose is AI-written, and it's clearly labeled as such. Downloadable as Markdown or as a
+  real formatted Word (`.docx`) document — proper headings, tables, and a numbered
+  remediation list, not a text dump.
 - **GuardFort** — real-time PII redaction (emails, SSNs, card numbers, API keys, IPs,
   phone numbers) and prompt-injection risk scoring, applied to every message before it
   reaches the model and to every model response — including the triage and report output
@@ -51,8 +53,9 @@ build step. No cloud services, no API keys, no AWS.
 - `server/routes/intelligence.js` — dashboard/assets/findings/runs REST API (runs a real
   scan via `server/recon/` on `POST /api/runs`)
 - `server/ai/triage.js` — LLM asset triage (priority, business impact, recommended action)
-- `server/ai/report.js` — LLM-drafted VAPT report (narrative sections + deterministic tables)
-- `server/routes/ai.js` — triage + report HTTP endpoints
+- `server/ai/report.js` — LLM-drafted VAPT report as Markdown (narrative + deterministic tables)
+- `server/ai/docxReport.js` — the same report rendered as a real `.docx` (Word) file
+- `server/routes/ai.js` — triage + report (Markdown and `.docx`) HTTP endpoints
 - `server/security/guardfort.js` — PII regex firewall + prompt-injection heuristics
 - `server/security/scanfort.js` — the red-team payload suite and scan runner
 - `server/routes/security.js` — GuardFort + ScanFort HTTP endpoints
@@ -135,8 +138,10 @@ own screen, skip this step entirely and stay on `http://localhost:5000`.
    triage" automation — a raw asset list becomes a worked queue.
 3. **VAPT Report tab** — click "Generate VAPT Report (AI)". The LLM drafts the executive
    summary and remediation plan; the findings table, asset inventory, and evidence
-   appendix come straight from the data. Download the `.md` file live as the report
-   deliverable — this is the "VAPT reporting" automation.
+   appendix come straight from the data. Download it live as either `.md` or a real
+   formatted `.docx` (Word) — headings, color-coded severity tables, numbered remediation
+   list — this is the "VAPT reporting" automation and the deliverable you'd actually hand
+   someone.
 4. **GuardFort tab** — paste a message containing PII and an injection attempt (a sample
    prompt is pre-filled as a placeholder). Show the redaction chips, the injection risk
    score, and that the sanitized text — not the raw text — is what goes to the LLM.
